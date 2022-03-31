@@ -52,9 +52,9 @@ def allowed_file(filename):
 
 def analyze(path):
     im = Image.open(path)
-    witdth, height = im.size
+    width, height = im.size
 
-    print(witdth, height)
+    print(width, height)
 
     return [("2.5", 0.7), ("1.5", 0.2)]
 
