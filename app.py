@@ -46,7 +46,7 @@ def analysis_photo():
             slot = request.form.get("slot")
 
             # upload image to firebase storage
-            img_url = upload_firebase_storage(path)
+            img_url = upload_firebase_storage(path, filename)
             analyzed_results = analyze(path)
             add_to_airtable(
                 asst_manage_name,
@@ -63,7 +63,12 @@ def analysis_photo():
                 "manager_name": manager_name,
                 "slot": slot,
                 "img_url": img_url,
-                "analyzed_results": analyzed_results,
+                "type1": analyzed_results[0][0],
+                "value1": str(analyzed_results[0][1]),
+                "type2": analyzed_results[1][0],
+                "value2": str(analyzed_results[1][1]),
+                "type3": analyzed_results[2][0],
+                "value3": str(analyzed_results[2][1]),
             }
             os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
@@ -74,10 +79,12 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def upload_firebase_storage(path):
+def upload_firebase_storage(path, filename):
     bucket = storage.bucket()
-    blob = bucket.blob(path)
-    blob.upload_from_filename(path)
+    blob = bucket.blob(filename)
+    # blob.upload_from_filename(path)
+    with open(path, "rb") as my_file:
+        blob.upload_from_file(my_file)
     blob.make_public()
 
     return blob.public_url
@@ -109,6 +116,12 @@ def add_to_airtable(
                     "slot": slot,
                     "img_url": img_url,
                     "analyzed_results": str(analyzed_results),
+                    "type1": analyzed_results[0][0],
+                    "value1": str(analyzed_results[0][1]),
+                    "type2": analyzed_results[1][0],
+                    "value2": str(analyzed_results[1][1]),
+                    "type3": analyzed_results[2][0],
+                    "value3": str(analyzed_results[2][1]),
                 }
             }
         ]
