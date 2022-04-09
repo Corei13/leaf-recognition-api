@@ -5,7 +5,7 @@ services:
     container_name: arcadia-leaf-analysis-api
     build: .
     volumes:
-      - ".:/tf"
+      - ".:/tf/app"
     ports:
-      - "7777:8888"
-      - "6666:6000"
+      - "8888:7777"
+      - "6060:6000"

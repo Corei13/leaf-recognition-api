@@ -6,6 +6,7 @@ from firebase_admin import credentials, initialize_app, storage
 from flask import Flask, jsonify, request
 from PIL import Image
 from werkzeug.utils import secure_filename
+from src import analyze, preprocess
 
 UPLOAD_FOLDER = "./temp"
 ALLOWED_EXTENSIONS = set(["png", "jpg", "jpeg"])
@@ -22,11 +23,23 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 cred = credentials.Certificate("./tea-firebase.json")
 initialize_app(cred, {"storageBucket": "tea-leaf-86440.appspot.com"})
 
+# reads from /temp/{filename} and returns the result
+# test with `curl localhost:6060/test/image.jpg`
+# TODO: delete both {filename} and converted-{filename} after uploading to airtable
+def predict(filename):
+    original_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), UPLOAD_FOLDER, filename
+    )
+    converted_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), UPLOAD_FOLDER, 'converted-' + filename
+    )
+    preprocess.convert_image(original_path, converted_path)
+    result = analyze.analyze(converted_path)
+    return result
 
-@app.route("/")
-def hello_world():
-    return "Hello, Love!"
-
+@app.route("/test/<filename>", methods=["GET"])
+def test(filename):
+    return predict(filename)
 
 @app.route("/analyze", methods=["POST", "GET"])
 def analysis_photo():
@@ -47,7 +60,8 @@ def analysis_photo():
 
             # upload image to firebase storage
             img_url = upload_firebase_storage(path, filename)
-            analyzed_results = analyze(path)
+            # TODO(shakil): check out predict()
+            analyzed_results = None
             add_to_airtable(
                 asst_manage_name,
                 estate_name,
@@ -89,13 +103,6 @@ def upload_firebase_storage(path, filename):
 
     return blob.public_url
 
-
-def analyze(path):
-    im = Image.open(path)
-    width, height = im.size
-    print(width, height)
-
-    return [("Two & half", 0.7), ("Three & half", 0.2), ("Four & half", 0.1)]
 
 
 def add_to_airtable(
