@@ -1,4 +1,4 @@
-FROM python:3.4.5-slim
+FROM tensorflow/tensorflow:latest-jupyter
 
 # Upgrade pip
 RUN pip install --upgrade pip
@@ -12,8 +12,10 @@ WORKDIR /app
 # now copy all the files in this directory to /code
 ADD . .
 
-# pip install the local requirements.txt
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update -y && apt install -y --no-install-recommends python3-opencv libgl1
 RUN pip install -r requirements.txt
 
 # Define our command to be run when launching the container
-CMD gunicorn app:app --bind 0.0.0.0:$PORT --reload
+CMD gunicorn app:app --bind 0.0.0.0:6000 --reload
