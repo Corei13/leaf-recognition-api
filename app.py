@@ -6,6 +6,7 @@ from firebase_admin import credentials, initialize_app, storage
 from flask import Flask, jsonify, request
 from PIL import Image
 from werkzeug.utils import secure_filename
+
 from src import analyze, preprocess
 
 UPLOAD_FOLDER = "./temp"
@@ -21,25 +22,32 @@ app.debug = True
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 cred = credentials.Certificate("./tea-firebase.json")
-initialize_app(cred, {"storageBucket": "tea-leaf-86440.appspot.com"})
+initialize_app(cred, {"storageBucket": "aracadia-leaf-analysis.appspot.com"})
 
-# reads from /temp/{filename} and returns the result
-# test with `curl localhost:6060/test/image.jpg`
-# TODO: delete both {filename} and converted-{filename} after uploading to airtable
+
 def predict(filename):
     original_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), UPLOAD_FOLDER, filename
     )
     converted_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), UPLOAD_FOLDER, 'converted-' + filename
+        os.path.dirname(os.path.abspath(__file__)),
+        UPLOAD_FOLDER,
+        "converted-" + filename,
     )
     preprocess.convert_image(original_path, converted_path)
     result = analyze.analyze(converted_path)
     return result
 
+
+@app.route("/", methods=["GET"])
+def start():
+    return "Hello, Love"
+
+
 @app.route("/test/<filename>", methods=["GET"])
 def test(filename):
     return predict(filename)
+
 
 @app.route("/analyze", methods=["POST", "GET"])
 def analysis_photo():
@@ -60,15 +68,19 @@ def analysis_photo():
 
             # upload image to firebase storage
             img_url = upload_firebase_storage(path, filename)
-            # TODO(shakil): check out predict()
-            analyzed_results = None
+            analyzed_results = predict(filename)
+            print(analyzed_results)
+            sorted_results = sorted(
+                analyzed_results.items(), key=lambda x: x[1], reverse=True
+            )
+
             add_to_airtable(
                 asst_manage_name,
                 estate_name,
                 manager_name,
                 slot,
                 img_url,
-                analyzed_results,
+                sorted_results,
             )
             data = {
                 "Created": date.today(),
@@ -76,15 +88,18 @@ def analysis_photo():
                 "estate_name": estate_name,
                 "manager_name": manager_name,
                 "slot": slot,
-                "img_url": img_url,
-                "type1": analyzed_results[0][0],
-                "value1": str(analyzed_results[0][1]),
-                "type2": analyzed_results[1][0],
-                "value2": str(analyzed_results[1][1]),
-                "type3": analyzed_results[2][0],
-                "value3": str(analyzed_results[2][1]),
+                "img_url": "url",
+                "type1": sorted_results[0][0],
+                "value1": str(sorted_results[0][1]),
+                "type2": sorted_results[1][0],
+                "value2": str(sorted_results[1][1]),
+                "type3": sorted_results[2][0],
+                "value3": str(sorted_results[2][1]),
             }
             os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            os.remove(
+                os.path.join(app.config["UPLOAD_FOLDER"], "converted-" + filename)
+            )
 
     return jsonify({"data": data}), 201
 
@@ -102,7 +117,6 @@ def upload_firebase_storage(path, filename):
     blob.make_public()
 
     return blob.public_url
-
 
 
 def add_to_airtable(
