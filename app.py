@@ -49,13 +49,13 @@ def test(filename):
     return predict(filename)
 
 
-@app.route("/analyze", methods=["POST", "GET"])
+@app.route("/analyze", methods=["POST"])
 def analysis_photo():
     if request.method == "POST":
         file = request.files["photo"]
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            # file.seek(0)
+            file.seek(0)
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
             path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)), "./temp", filename
@@ -69,7 +69,7 @@ def analysis_photo():
             # upload image to firebase storage
             img_url = upload_firebase_storage(path, filename)
             analyzed_results = predict(filename)
-            print(analyzed_results)
+            # print(analyzed_results)
             sorted_results = sorted(
                 analyzed_results.items(), key=lambda x: x[1], reverse=True
             )
@@ -88,7 +88,7 @@ def analysis_photo():
                 "estate_name": estate_name,
                 "manager_name": manager_name,
                 "slot": slot,
-                "img_url": "url",
+                "img_url": img_url,
                 "type1": sorted_results[0][0],
                 "value1": str(sorted_results[0][1]),
                 "type2": sorted_results[1][0],
