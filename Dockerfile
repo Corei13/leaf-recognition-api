@@ -18,8 +18,13 @@ RUN pip install -r requirements.txt
 WORKDIR /tf/app
 
 COPY app.py .
+COPY src .
 COPY tea-firebase.json .
 COPY . .
 # Define our command to be run when launching the container
-# CMD gunicorn app:app --bind 0.0.0.0:6000 --reload --workers=4
-CMD ["gunicorn"  , "-b", "0.0.0.0:6000", "app:app" ]
+# CMD exec gunicorn app:app --bind 0.0.0.0:6000 --reload --workers=4
+CMD ["gunicorn"  , "-b", "0.0.0.0:6000", "app:app" , "--reload"]
+# ARG options
+# ENV OPTIONS $options
+
+# CMD gunicorn $OPTIONS app:app --bind 0.0.0.0:6000  --workers=4

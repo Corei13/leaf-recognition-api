@@ -12,6 +12,11 @@ Pillow==8.2.0
 opencv-python==4.5.5.64
 numpy==1.22.3
 firebase-admin==5.2.0
+ml_collections==0.1.1
+tensorflow-addons
+pycocotools
+tensorflow-datasets
+opencv-python
 
 # Flask==0.12.2
 # gunicorn==19.7.1

@@ -1,12 +1,12 @@
 import json
 import sys
-
-import PIL.Image
-import numpy as np
-import cv2
-
-from os.path import basename
 from glob import glob
+from os.path import basename
+
+import cv2
+import numpy as np
+import PIL.Image
+
 
 def get_contours(img):
     # First make the image 1-bit and get contours
@@ -65,7 +65,7 @@ def process_image(path):
     # cv2.drawContours(img, contours, -1, (0,255,0)) # draws contours, good for debugging
     bounds = find_boundaries(img, contours)
     cropped = crop(img, bounds)
-    return cropped
+    return img
 
 def convert_image(src, dest):
   img = PIL.Image.fromarray(process_image(src))

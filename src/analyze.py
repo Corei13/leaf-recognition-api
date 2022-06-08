@@ -23,4 +23,3 @@ def analyze(src):
   predictions = model.predict(img)[0]
   
   return dict(zip(classes, [math.floor(float(p) * 100 + 0.5) for p in predictions]))
-

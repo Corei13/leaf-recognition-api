@@ -1,5 +1,4 @@
 # version: "3.3"
-
 services:
   jupyter:
     container_name: arcadia-leaf-analysis-api
@@ -8,4 +7,4 @@ services:
       - ".:/tf/app"
     ports:
       - "8888:7777"
-      - "8080:6000"
+      - "5000:6000"
